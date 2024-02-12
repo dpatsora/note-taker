@@ -1,0 +1,173 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Note Taking API
+  description: Application for taking notes
+servers:
+  - url: http://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+security:
+  - bearerAuth: []
+paths:
+  /notes:
+    get:
+      operationId: getNotes
+      responses:
+        '200':
+          description: Retrieve list of notes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notes'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      operationId: createNote
+      requestBody:
+        description: Provide note details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostNote'
+      responses:
+        '204':
+          description: Note has been stored
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notes/{noteUUID}:
+    get:
+      operationId: getNote
+      parameters:
+        - in: path
+          name: noteUUID
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: todo
+      responses:
+        '200':
+          description: Retrieve note details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: deleteNote
+      parameters:
+        - in: path
+          name: noteUUID
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Provide note UUID
+      responses:
+        '204':
+          description: Note has been deleted
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      operationId: updateNote
+      requestBody:
+        description: Update note details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostNote'
+      parameters:
+        - in: path
+          name: noteUUID
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Note UUID
+      responses:
+        '204':
+          description: Note has been updated
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Note:
+      type: object
+      required: [uuid, title, description, time]
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Monday plans"
+        description:
+          type: string
+          example: "let's do leg day!"
+        time:
+          type: string
+          format: date-time
+
+    Notes:
+      type: object
+      required: [notes]
+      properties:
+        notes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Note'
+
+    PostNote:
+      type: object
+      required: [title, description]
+      properties:
+        title:
+          type: string
+          example: "Monday plans"
+        description:
+          type: string
+          example: "let's do leg day!"
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+        message:
+          type: string
